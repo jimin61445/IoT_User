@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/darker_gray"
+    android:orientation="vertical"
+    tools:context="com.example.myapplication.MainActivity">
+
+
+    <com.example.myapplication.MyView
+        android:id="@+id/printV"
+        android:layout_width="200dp"
+        android:layout_height="427dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/ai4f"
+        android:visibility="visible"></com.example.myapplication.MyView>
+
+    <com.example.myapplication.MyView
+        android:id="@+id/printB"
+        android:layout_width="200dp"
+        android:layout_height="427dp"
+        android:layout_toRightOf="@+id/printV"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/ai5f"
+        android:visibility="visible"></com.example.myapplication.MyView>
+
+    <Button
+        android:id="@+id/btn1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show Path"
+        android:layout_below="@+id/printB"></Button>
+
+    <Button
+        android:id="@+id/btn2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text = "Clear"
+        android:layout_below="@+id/printB"
+        android:layout_toRightOf="@+id/btn1"></Button>
+
+    <EditText
+        android:id="@+id/ets"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:text="4"
+        android:layout_below="@+id/printB"
+        android:layout_toRightOf="@+id/btn2"></EditText>
+
+    <EditText
+        android:id="@+id/ete"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:text="0"
+        android:layout_below="@+id/printB"
+        android:layout_toRightOf="@+id/ets"></EditText>
+    <EditText
+        android:id="@+id/eti"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:text="5"
+        android:layout_below="@+id/ets"
+        android:layout_toRightOf="@+id/btn2"></EditText>
+
+    <EditText
+        android:id="@+id/eto"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:text="0"
+        android:layout_below="@+id/ete"
+        android:layout_toRightOf="@+id/eti"></EditText>
+
+    <!--    /*-->
+<!--    com.example.myapplication.MyView-->
+<!--    android:id="@+id/printB"-->
+<!--    android:layout_width="200dp"-->
+<!--    android:layout_height="427dp"-->
+<!--    android:layout_gravity="center_horizontal"-->
+<!--    android:background="@drawable/ai5f"-->
+<!--    android:visibility="gone"com.example.myapplication.MyView-->
+
+<!--    Button-->
+<!--    android:id="@+id/btn3"-->
+<!--    android:layout_width="wrap_content"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:text = "Change Floor"Button-->
+<!--    */-->
+</RelativeLayout>
