@@ -72,6 +72,19 @@
         android:layout_below="@+id/ete"
         android:layout_toRightOf="@+id/eti"></EditText>
 
+    <ImageView
+        android:id="@+id/pointer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/compass"
+        android:layout_below="@+id/eto"/>
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_height="50dp"
+        android:layout_width="50dp"
+        android:layout_toRightOf="@+id/eto"
+        android:layout_below="@+id/printB"/>
+
     <!--    /*-->
 <!--    com.example.myapplication.MyView-->
 <!--    android:id="@+id/printB"-->

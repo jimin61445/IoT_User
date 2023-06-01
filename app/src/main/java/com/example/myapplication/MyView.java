@@ -26,12 +26,17 @@ public class MyView extends View{
 
 
         Paint paint = new Paint();
+        Paint pt = new Paint();
+        pt.setColor(Color.RED);
+        pt.setStrokeWidth(3);
+        pt.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.BLACK);
         paint.setStrokeWidth(5);
         paint.setStyle(Paint.Style.STROKE);
         Path path = new Path();
         if(astar.list.size()!=0){
-
+            canvas.drawCircle((float) astar.start.getX(),(float)astar.start.getY(),5,pt);
+            canvas.drawCircle((float) astar.end.getX(),(float)astar.end.getY(),5,pt);
             if (this.floor == astar.list.peek().getFloor()) {
                 if (this.floor == 4) {
 

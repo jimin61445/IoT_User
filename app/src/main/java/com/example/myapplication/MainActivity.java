@@ -1,23 +1,37 @@
 package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
-import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Path;
+
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Stack;
 
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
     boolean floor =  true;
+
+    private ImageView pt;
+    private TextView tv;
+    private SensorManager sm;
+    private Sensor Accel;
+    private Sensor Magnet;
+    private float[] LastAccel = new float[3];
+    private float[] LastMagnet = new float[3];
+    private boolean AccelSet = false;
+    private boolean MagnetSet = false;
+    private float[] mR = new float[9];
+    private float[] mOrientation = new float[3];
+    private float currentDegree = 0f;
 
     EditText ets ;
     EditText ete ;
@@ -39,7 +53,14 @@ public class MainActivity extends AppCompatActivity {
         btn1.setOnClickListener(t);
         btn2.setOnClickListener(u);
 //        btn3.setOnClickListener(c);
+
+        sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+        Accel = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        Magnet = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        pt = (ImageView) findViewById(R.id.pointer);
+        tv =(TextView)findViewById(R.id.textView1);
     }
+
     View.OnClickListener t =new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -114,4 +135,42 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        }
 //    };
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        sm.registerListener((SensorEventListener) this,Accel,SensorManager.SENSOR_DELAY_GAME);
+        sm.registerListener((SensorEventListener) this,Magnet,SensorManager.SENSOR_DELAY_GAME);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sm.unregisterListener((SensorEventListener) this, Accel);
+        sm.unregisterListener((SensorEventListener) this,Magnet);
+    }
+    @Override
+    public void onSensorChanged(SensorEvent event){
+        if(event.sensor == Accel){
+            System.arraycopy(event.values,0,LastAccel,0,event.values.length);
+            AccelSet=true;
+        }
+        else if(event.sensor==Magnet){
+            System.arraycopy(event.values,0,LastMagnet,0,event.values.length);
+            MagnetSet=true;
+        }
+        if(AccelSet&&MagnetSet){
+            SensorManager.getRotationMatrix(mR,null,LastAccel,LastMagnet);
+            float degree = (int) (Math.toDegrees(SensorManager.getOrientation(mR,mOrientation)[0])+360)%360;
+            RotateAnimation RA =  new RotateAnimation(currentDegree,-degree, Animation.RELATIVE_TO_SELF,0.5f,Animation.RELATIVE_TO_SELF,0.5f);
+            RA.setDuration(250);
+            RA.setFillAfter(true);
+            pt.startAnimation(RA);
+            currentDegree=-degree;
+            tv.setText(Float.toString(degree));
+        }
+    }
+    @Override
+    public void onAccuracyChanged(Sensor sensor,int accuracy){}
+
 }
