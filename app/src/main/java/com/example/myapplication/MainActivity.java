@@ -159,15 +159,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             System.arraycopy(event.values,0,LastMagnet,0,event.values.length);
             MagnetSet=true;
         }
-        if(AccelSet&&MagnetSet){
+        if(AccelSet==true&&MagnetSet==true){
             SensorManager.getRotationMatrix(mR,null,LastAccel,LastMagnet);
-            float degree = (int) (Math.toDegrees(SensorManager.getOrientation(mR,mOrientation)[0])+360)%360;
-            RotateAnimation RA =  new RotateAnimation(currentDegree,-degree, Animation.RELATIVE_TO_SELF,0.5f,Animation.RELATIVE_TO_SELF,0.5f);
+            SensorManager.getOrientation(mR,mOrientation);
+
+            float azimuth = (float) Math.toDegrees(mOrientation[0]);
+
+
+            RotateAnimation RA =  new RotateAnimation(currentDegree,-azimuth, Animation.RELATIVE_TO_SELF,0.5f,Animation.RELATIVE_TO_SELF,0.5f);
+
             RA.setDuration(250);
             RA.setFillAfter(true);
             pt.startAnimation(RA);
-            currentDegree=-degree;
-            tv.setText(Float.toString(degree));
+
         }
     }
     @Override
