@@ -2,6 +2,10 @@ package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -34,10 +38,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] mOrientation = new float[3];
     private float currentDegree = 0f;
 
+    private Button navigationButton;
+
     EditText ets ;
     EditText ete ;
     EditText eto ;
     EditText eti ;
+
+    private BroadcastReceiver azimuthReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals("com.example.myapplication.AZIMUTH_UPDATE")) {
+                float azimuth = intent.getFloatExtra("azimuth", 0f);
+                // 여기서 azimuth 값을 사용해 원하는 작업 수행
+
+
+            }
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +79,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         pt = (ImageView) findViewById(R.id.pointer);
         tv =(TextView)findViewById(R.id.textView1);
         lt =(TextView)findViewById(R.id.textView2);
+
+        navigationButton = findViewById(R.id.navigationButton);
+        navigationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // 네비게이션 액티비티로 전환
+                Intent intent = new Intent(MainActivity.this, Navigation.class);
+                startActivity(intent);
+            }
+        });
+
     }
 
     View.OnClickListener t =new View.OnClickListener() {
@@ -127,6 +157,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onResume();
         sm.registerListener((SensorEventListener) this,Accel,SensorManager.SENSOR_DELAY_GAME);
         sm.registerListener((SensorEventListener) this,Magnet,SensorManager.SENSOR_DELAY_GAME);
+
+        // BroadcastReceiver 등록
+        IntentFilter filter = new IntentFilter("com.example.myapplication.AZIMUTH_UPDATE");
+        registerReceiver(azimuthReceiver, filter);
     }
 
     @Override
@@ -134,6 +168,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onPause();
         sm.unregisterListener((SensorEventListener) this, Accel);
         sm.unregisterListener((SensorEventListener) this,Magnet);
+
+        // BroadcastReceiver 해제
+        unregisterReceiver(azimuthReceiver);
     }
     @Override
     public void onSensorChanged(SensorEvent event){
@@ -152,6 +189,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             float azimuth = (float) Math.toDegrees(mOrientation[0]);
             tv.setText(" "+azimuth);
 
+            // azimuth 값을 Broadcast로 전달
+            Intent azimuthIntent = new Intent("com.example.myapplication.AZIMUTH_UPDATE");
+            azimuthIntent.putExtra("azimuth", azimuth);
+            sendBroadcast(azimuthIntent);
+
             RotateAnimation RA =  new RotateAnimation(currentDegree,-azimuth, Animation.RELATIVE_TO_SELF,0.5f,Animation.RELATIVE_TO_SELF,0.5f);
 
             RA.setDuration(250);
@@ -160,6 +202,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             currentDegree= -azimuth;
         }
     }
+
     @Override
     public void onAccuracyChanged(Sensor sensor,int accuracy){}
 
