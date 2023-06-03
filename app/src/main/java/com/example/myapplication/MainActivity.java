@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private ImageView pt;
     private TextView tv;
+    private TextView lt;
     private SensorManager sm;
     private Sensor Accel;
     private Sensor Magnet;
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Magnet = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         pt = (ImageView) findViewById(R.id.pointer);
         tv =(TextView)findViewById(R.id.textView1);
+        lt =(TextView)findViewById(R.id.textView2);
     }
 
     View.OnClickListener t =new View.OnClickListener() {
@@ -98,6 +100,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             if(check==0) {
                 astar.astarMain();
+                lt.setText(" "+Math.ceil(astar.fVal));
+
                 if (astar.start.getFloor() == 4) {
                     mv.invalidate();
                     mv2.invalidate();
@@ -164,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             SensorManager.getOrientation(mR,mOrientation);
 
             float azimuth = (float) Math.toDegrees(mOrientation[0]);
-
+            tv.setText(" "+azimuth);
 
             RotateAnimation RA =  new RotateAnimation(currentDegree,-azimuth, Animation.RELATIVE_TO_SELF,0.5f,Animation.RELATIVE_TO_SELF,0.5f);
 

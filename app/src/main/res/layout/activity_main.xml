@@ -83,8 +83,15 @@
         android:layout_height="50dp"
         android:layout_width="50dp"
         android:layout_toRightOf="@+id/eto"
-        android:layout_below="@+id/printB"/>
-
+        android:layout_below="@+id/printB"
+        android:text="compass"/>
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_height="50dp"
+        android:layout_width="50dp"
+        android:layout_toRightOf="@+id/eto"
+        android:text="length"
+        android:layout_below="@+id/textView1"/>
     <!--    /*-->
 <!--    com.example.myapplication.MyView-->
 <!--    android:id="@+id/printB"-->
