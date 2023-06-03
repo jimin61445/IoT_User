@@ -19,7 +19,6 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     boolean floor =  true;
-
     private ImageView pt;
     private TextView tv;
     private TextView lt;
