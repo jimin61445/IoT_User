@@ -122,24 +122,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mv2.invalidate();
         }
     };
-//    View.OnClickListener c = new View.OnClickListener() {
-//        @Override
-//        public void onClick(View view) {
-//            MyView mv1 = (MyView) findViewById(R.id.printV);
-//            MyView mv2 = (MyView) findViewById(R.id.printB);
-//            if(floor){
-//                mv1.setVisibility(View.GONE);
-//                mv2.setVisibility(View.VISIBLE);
-//                floor=false;
-//            }
-//            else{
-//                mv1.setVisibility(View.VISIBLE);
-//                mv2.setVisibility(View.GONE);
-//                floor=true;
-//            }
-//        }
-//    };
-
     @Override
     protected void onResume(){
         super.onResume();
@@ -175,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             RA.setDuration(250);
             RA.setFillAfter(true);
             pt.startAnimation(RA);
-
+            currentDegree= -azimuth;
         }
     }
     @Override
