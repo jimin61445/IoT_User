@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals("com.example.myapplication.AZIMUTH_UPDATE")) {
                 float azimuth = intent.getFloatExtra("azimuth", 0f);
-                // 여기서 azimuth 값을 사용해 원하는 작업 수행
 
 
             }
