@@ -39,6 +39,7 @@ import org.apache.commons.math3.ml.distance.EuclideanDistance;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,7 +75,6 @@ public class Navigation extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.navigation);
 
-        RealVector currentFingerprint = null;
 
         directionImageView = findViewById(R.id.directionImageView);
         location = findViewById(R.id.location);
@@ -93,38 +93,70 @@ public class Navigation extends AppCompatActivity {
         collectionRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                String ssid,bssid,rssi;
                 if (task.isSuccessful()) {
                     QuerySnapshot querySnapshot = task.getResult();
                     if (querySnapshot != null) {
                         List<RealVector> dataList = new ArrayList<>();
                         List<String> databaseLocations = new ArrayList<>();
+
                         for (QueryDocumentSnapshot documentSnapshot : querySnapshot) {
 
                             // 문서의 필드에서 RSSI 값을 가져와서 벡터로 변환
-                            HashMap<String, Object> RSSIHashMap = (HashMap<String, Object>) documentSnapshot.get("RSSI");
-                            if (RSSIHashMap != null && !RSSIHashMap.isEmpty()) {
-                                List<List<String>> RSSI = new ArrayList<>();
-                                for (Object value : RSSIHashMap.values()) {
-                                    if (value instanceof List) {
-                                        RSSI.add((List<String>) value);
-                                    }
-                                }
 
-                                double[] features = new double[RSSI.size() * 2];
-                                for (int i = 0; i < RSSI.size(); i++) {
-                                    List<String> element = RSSI.get(i);
-                                    if (element.size() > 1) {
-                                        String bssid = element.get(0);
-                                        int rssi = Integer.parseInt(element.get(1));
-                                        features[2 * i] = rssi; // RSSI 값 저장
-                                        features[2 * i + 1] = Double.parseDouble(bssid.replace(":", "")); // BSSID 값 숫자로 변환해 저장
+                            ArrayList<Object> RSSIHashMap = (ArrayList<Object>) documentSnapshot.getData().get("RSSI");
+
+                            if(RSSIHashMap!=null&&!RSSIHashMap.isEmpty()) {
+                                double[] features = new double[RSSIHashMap.size() * 2];
+
+                                for (int i = 0; i < RSSIHashMap.size(); i++) {
+                                    Log.d("B",""+RSSIHashMap.size());
+                                    HashMap<String, String> map = (HashMap<String, String>) RSSIHashMap.get(i);
+                                    ssid = map.get("ssid");
+                                    bssid = map.get("bssid");
+                                    rssi = map.get("rssi");
+                                    Log.d("log", ssid + bssid + rssi);
+                                    String[] li = bssid.split(":");
+                                    String rssiTemp = null;
+                                    rssiTemp = String.valueOf((Integer.parseInt(li[0],16)));
+                                    for (int j = 1; j < li.length; j++) {
+                                        rssiTemp=rssiTemp+String.valueOf((Integer.parseInt(li[j],16)));
                                     }
+                                    features[2 * i] = Double.parseDouble(rssi);
+                                    Log.d("lod",rssiTemp);
+                                    features[2 * i + 1] = Double.parseDouble(rssiTemp);
                                 }
-                                // 벡터 생성 및 리스트에 추가
+                                Log.d("a","AAA");
                                 RealVector dataVector = new ArrayRealVector(features);
                                 dataList.add(dataVector);
-                                databaseLocations.add(documentSnapshot.getId()); // 문서 ID를 위치 정보로 사용
+                                databaseLocations.add(documentSnapshot.getId());
                             }
+
+
+//                            if (RSSIHashMap != null && !RSSIHashMap.isEmpty()) {
+//                                List<List<String>> RSSI = new ArrayList<>();
+//                                for (Object value : RSSIHashMap.values()) {
+//                                    if (value instanceof List) {
+//                                        RSSI.add((List<String>) value);
+//                                    }
+//                                }double[] features = new double[RSSI.size() * 2];
+//
+//                                double[] features = new double[RSSI.size() * 2];
+//                                for (int i = 0; i < RSSI.size(); i++) {
+//                                    List<String> element = RSSI.get(i);
+//                                    if (element.size() > 1) {
+//                                        String bssid = element.toString();
+//
+//                                        int rssi = Integer.parseInt(element.get(1));
+//                                        features[2 * i] = rssi; // RSSI 값 저장
+//                                        features[2 * i + 1] = Double.parseDouble(bssid.replace(":", "")); // BSSID 값 숫자로 변환해 저장
+//                                    }
+//                                }
+//                                // 벡터 생성 및 리스트에 추가
+//                                RealVector dataVector = new ArrayRealVector(features);
+//                                dataList.add(dataVector);
+//                                databaseLocations.add(documentSnapshot.getId()); // 문서 ID를 위치 정보로 사용
+//                            }
                         }
 
                         // 3. 핑거프린트 매칭 실행
@@ -171,7 +203,13 @@ public class Navigation extends AppCompatActivity {
                     int rssi = scanResult.level;
                     String bssid = scanResult.BSSID;
                     features[2 * i] = rssi; // RSSI 값 저장
-                    features[2 * i + 1] = Double.parseDouble(bssid.replace(":", "")); // BSSID 값 숫자로 변환해 저장
+                    String[] li = bssid.split(":");
+                    String rssiTemp = null;
+                    rssiTemp = String.valueOf((Integer.parseInt(li[0],16)));
+                    for (int j = 1; j < li.length; j++) {
+                        rssiTemp=rssiTemp+String.valueOf((Integer.parseInt(li[j],16)));
+                    }
+                    features[2 * i + 1] = Double.parseDouble(rssiTemp);
                 }
                 return new ArrayRealVector(features);
             }
@@ -234,9 +272,9 @@ public class Navigation extends AppCompatActivity {
         double[] array1 = v1.toArray();
         double[] array2 = v2.toArray();
 
-        if (array1.length != array2.length) {
-            throw new IllegalArgumentException("벡터의 길이가 일치하지 않습니다.");
-        }
+//        if (array1.length != array2.length) {
+//            throw new IllegalArgumentException("벡터의 길이가 일치하지 않습니다.");
+//        }
 
         double sum = 0.0;
         for (int i = 0; i < array1.length; i++) {
