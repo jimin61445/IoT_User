@@ -76,8 +76,9 @@
         android:id="@+id/pointer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@drawable/compass"
-        android:layout_below="@+id/eto"/>
+        android:layout_below="@+id/eto"
+        android:src="@drawable/compass" />
+
     <TextView
         android:id="@+id/textView1"
         android:layout_height="50dp"

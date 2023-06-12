@@ -37,42 +37,22 @@ public class MyView extends View{
         if(astar.list.size()!=0){
 
             if (this.floor == astar.list.peek().getFloor()) {
-                if (this.floor == 4) {
-                    path.moveTo((float) (astar.list.peek().getX() * findViewById(R.id.printV).getWidth() / 45.3), (float) (findViewById(R.id.printV).getHeight() - astar.list.peek().getY() * findViewById(R.id.printV).getHeight() / 96.7));
-                }
-                else{
-                    path.moveTo((float) (astar.list.peek().getX() * findViewById(R.id.printB).getWidth() / 45.3), (float) (findViewById(R.id.printB).getHeight() - astar.list.peek().getY() * findViewById(R.id.printB).getHeight() / 96.7));
-                }
-
+                    path.moveTo((float) (astar.list.peek().getX() * this.getWidth() / 45.3), (float) (this.getHeight() - astar.list.peek().getY() * this.getHeight() / 96.7));
             }
 
             while (!astar.list.isEmpty()) {
                 if(this.floor==astar.start.getFloor()){
-                    if(this.floor==4) {
-                        canvas.drawCircle((float) (astar.start.getX() * findViewById(R.id.printV).getWidth() / 45.3), (float) (findViewById(R.id.printV).getHeight() - astar.start.getY() * findViewById(R.id.printV).getHeight() / 96.7), 10, pt);
-                    }
-                    else{
-                        canvas.drawCircle((float) (astar.start.getX() * findViewById(R.id.printB).getWidth() / 45.3), (float) (findViewById(R.id.printB).getHeight() - astar.start.getY() * findViewById(R.id.printB).getHeight() / 96.7), 10, pt);
-                    }
+                        canvas.drawCircle((float) (astar.start.getX() * this.getWidth() / 45.3), (float) (this.getHeight() - astar.start.getY() * this.getHeight() / 96.7), 10, pt);
                 }
                 if(this.floor==astar.end.getFloor()){
-                    if(this.floor==4){
-                        canvas.drawCircle((float) (astar.end.getX() * findViewById(R.id.printV).getWidth() / 45.3), (float) (findViewById(R.id.printV).getHeight() - astar.end.getY() * findViewById(R.id.printV).getHeight() / 96.7),10,pt);
-                    }
-                    else{
-                        canvas.drawCircle((float) (astar.end.getX() * findViewById(R.id.printB).getWidth() / 45.3), (float) (findViewById(R.id.printB).getHeight() - astar.end.getY() * findViewById(R.id.printB).getHeight() / 96.7),10,pt);
-                    }
+                        canvas.drawCircle((float) (astar.end.getX() * this.getWidth() / 45.3), (float) (this.getHeight() - astar.end.getY() * this.getHeight() / 96.7),10,pt);
                 }
 
                 if(this.floor!=astar.list.peek().getFloor()){
                     break;
                 }
-                if (floor == 4) {
-                    path.lineTo((float) (astar.list.peek().getX() * findViewById(R.id.printV).getWidth() / 45.3), (float) (findViewById(R.id.printV).getHeight() - astar.list.peek().getY() * findViewById(R.id.printV).getHeight() / 96.7));
-                }
-                else{
-                    path.lineTo((float) (astar.list.peek().getX() * findViewById(R.id.printB).getWidth() / 45.3), (float) (findViewById(R.id.printB).getHeight() - astar.list.peek().getY() * findViewById(R.id.printB).getHeight() / 96.7));
-                }
+                path.lineTo((float) (astar.list.peek().getX() * this.getWidth() / 45.3), (float) (this.getHeight() - astar.list.peek().getY() * this.getHeight() / 96.7));
+
                 astar.list.pop();
             }
         }

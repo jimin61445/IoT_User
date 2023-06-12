@@ -40,6 +40,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private Button navigationButton;
 
+    private int spinChcek=0;
+
     EditText ets ;
     EditText ete ;
     EditText eto ;
@@ -95,6 +97,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     View.OnClickListener t =new View.OnClickListener() {
         @Override
         public void onClick(View view) {
+            spinChcek=1;
+            astar.fVal=0;
             int check =0;
             MyView mv = (MyView) findViewById(R.id.printV);
             MyView mv2  = (MyView) findViewById(R.id.printB);
@@ -139,13 +143,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     mv.invalidate();
                 }
             }
+
         }
     };
     View.OnClickListener u= new View.OnClickListener() {
         @Override
         public void onClick(View view) {
+            astar.fVal=0;
+            lt.setText(" "+Math.ceil(astar.fVal));
             MyView mv = (MyView) findViewById(R.id.printV);
-
             MyView mv2  = (MyView) findViewById(R.id.printB);
             mv.invalidate();
             mv2.invalidate();
@@ -181,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             System.arraycopy(event.values,0,LastMagnet,0,event.values.length);
             MagnetSet=true;
         }
-        if(AccelSet==true&&MagnetSet==true){
+        if(AccelSet&&MagnetSet){
             SensorManager.getRotationMatrix(mR,null,LastAccel,LastMagnet);
             SensorManager.getOrientation(mR,mOrientation);
 
@@ -192,13 +198,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             Intent azimuthIntent = new Intent("com.example.myapplication.AZIMUTH_UPDATE");
             azimuthIntent.putExtra("azimuth", azimuth);
             sendBroadcast(azimuthIntent);
-
-            RotateAnimation RA =  new RotateAnimation(currentDegree,-azimuth, Animation.RELATIVE_TO_SELF,0.5f,Animation.RELATIVE_TO_SELF,0.5f);
-
+            RotateAnimation RA = new RotateAnimation(currentDegree, -azimuth, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
             RA.setDuration(250);
             RA.setFillAfter(true);
             pt.startAnimation(RA);
-            currentDegree= -azimuth;
+            currentDegree = -azimuth;
+
         }
     }
 
