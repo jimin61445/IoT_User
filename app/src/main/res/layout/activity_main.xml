@@ -41,58 +41,36 @@
         android:layout_below="@+id/printB"
         android:layout_toRightOf="@+id/btn1"></Button>
 
-    <EditText
-        android:id="@+id/ets"
-        android:layout_width="50dp"
+    <Spinner
+        android:id="@+id/spinner"
+        android:entries="@array/목적지"
+        android:layout_width="150dp"
         android:layout_height="50dp"
-        android:text="4"
-        android:layout_below="@+id/printB"
-        android:layout_toRightOf="@+id/btn2"></EditText>
+        android:layout_below="@+id/printV"
+        android:layout_toRightOf="@+id/btn2"></Spinner>
 
-    <EditText
-        android:id="@+id/ete"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:text="0"
-        android:layout_below="@+id/printB"
-        android:layout_toRightOf="@+id/ets"></EditText>
-    <EditText
-        android:id="@+id/eti"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:text="5"
-        android:layout_below="@+id/ets"
-        android:layout_toRightOf="@+id/btn2"></EditText>
-
-    <EditText
-        android:id="@+id/eto"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:text="0"
-        android:layout_below="@+id/ete"
-        android:layout_toRightOf="@+id/eti"></EditText>
 
     <ImageView
         android:id="@+id/pointer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/eto"
+        android:layout_below="@+id/navigationButton"
         android:src="@drawable/compass" />
 
     <TextView
         android:id="@+id/textView1"
         android:layout_height="50dp"
         android:layout_width="50dp"
-        android:layout_toRightOf="@+id/eto"
-        android:layout_below="@+id/printB"
+        android:layout_toRightOf="@+id/navigationButton"
+        android:layout_below="@+id/spinner"
         android:text="compass"/>
     <TextView
         android:id="@+id/textView2"
         android:layout_height="50dp"
         android:layout_width="50dp"
-        android:layout_toRightOf="@+id/eto"
+        android:layout_toRightOf="@+id/textView1"
         android:text="length"
-        android:layout_below="@+id/textView1"/>
+        android:layout_below="@+id/btn2"/>
 
     <Button
         android:id="@+id/navigationButton"
