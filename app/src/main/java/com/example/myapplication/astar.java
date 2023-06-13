@@ -21,6 +21,7 @@ public class astar {
     public static Node[] m = new Node[100];
     public static Node start;
     public static Node end;
+    public static Node next;
     public static double fVal=0;
     public static Stack<Node> list = new Stack<>();
     public static Stack<Node> finalList = new Stack<>();
@@ -95,6 +96,9 @@ public class astar {
                 if (!openList.contains(neighbor) ||fScore < fMaps.get(neighbor)) {
                     if(current.getParent()!=neighbor) {
                         neighbor.setParent(current);
+                        if(current==start){
+                            next = neighbor;
+                        }
                     }
                     gMaps.put(neighbor, gScore);
                     fMaps.put(neighbor, fScore);
@@ -118,7 +122,6 @@ public class astar {
     private void printPath(Node node,Node end) {
         list.push(node);
         while (node.getParent() != null) {
-            Log.d("Log", String.valueOf(fVal));
             fVal = fVal + Math.sqrt(h(node, node.getParent()));
 
             node = node.getParent();

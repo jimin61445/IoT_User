@@ -55,7 +55,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/navigationButton"
-        android:src="@drawable/compass" />
+        android:src="@drawable/up" />
 
     <TextView
         android:id="@+id/textView1"

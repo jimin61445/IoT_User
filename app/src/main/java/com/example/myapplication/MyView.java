@@ -27,9 +27,13 @@ public class MyView extends View{
 
         Paint paint = new Paint();
         Paint pt = new Paint();
+        Paint ptt= new Paint();
         pt.setColor(Color.RED);
         pt.setStrokeWidth(3);
         pt.setStyle(Paint.Style.STROKE);
+        ptt.setColor(Color.BLUE);
+        ptt.setStrokeWidth(3);
+        ptt.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.BLACK);
         paint.setStrokeWidth(5);
         paint.setStyle(Paint.Style.STROKE);
@@ -45,7 +49,7 @@ public class MyView extends View{
                         canvas.drawCircle((float) (astar.start.getX() * this.getWidth() / 45.3), (float) (this.getHeight() - astar.start.getY() * this.getHeight() / 96.7), 10, pt);
                 }
                 if(this.floor==astar.end.getFloor()){
-                        canvas.drawCircle((float) (astar.end.getX() * this.getWidth() / 45.3), (float) (this.getHeight() - astar.end.getY() * this.getHeight() / 96.7),10,pt);
+                        canvas.drawCircle((float) (astar.end.getX() * this.getWidth() / 45.3), (float) (this.getHeight() - astar.end.getY() * this.getHeight() / 96.7),10,ptt);
                 }
 
                 if(this.floor!=astar.list.peek().getFloor()){

@@ -115,34 +115,34 @@ public class check {
             case "435":
                 temp=409;
                 break;
-            case "1번 계단(4층)":
+            case "1번계단(4층)":
                 temp=436;
                 break;
-            case "2번 계단(4층)":
+            case "2번계단(4층)":
                 temp=437;
                 break;
-            case "3번 계단(4층)":
+            case "3번계단(4층)":
                 temp=438;
                 break;
-            case "4번 계단(4층)":
+            case "4번계단(4층)":
                 temp=439;
                 break;
-            case "5번 계단(4층)":
+            case "5번계단(4층)":
                 temp=440;
                 break;
-            case "1번 엘베(4층)":
+            case "1번엘베(4층)":
                 temp=441;
                 break;
-            case "2번 엘베(4층)":
+            case "2번엘베(4층)":
                 temp=442;
                 break;
-            case "3번 엘베(4층)":
+            case "3번엘베(4층)":
                 temp=443;
                 break;
             case "아르테크네(4층)":
                 temp=444;
                 break;
-            case "1번 남자화장실(4층)":
+            case "1번남자화장실(4층)":
                 temp=445;
                 break;
             case "2번 남자화장실(4층)":

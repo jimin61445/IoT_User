@@ -62,7 +62,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (intent.getAction().equals("com.example.myapplication.AZIMUTH_UPDATE")) {
                 float azimuth = intent.getFloatExtra("azimuth", 0f);
 
-                updateDirectionImage(azimuth);
             }
         }
     };
@@ -139,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //                Intent intent = new Intent(MainActivity.this, Navigation.class);
 //                startActivity(intent);
                 getData();
+
             }
         });
 
@@ -199,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     mv.invalidate();
                 }
             }
+            updateDirectionImage();
 
         }
     };
@@ -257,7 +258,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             RotateAnimation RA = new RotateAnimation(currentDegree, -azimuth, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
             RA.setDuration(250);
             RA.setFillAfter(true);
-            pt.startAnimation(RA);
+//            pt.startAnimation(RA);
             currentDegree = -azimuth;
 
         }
@@ -376,21 +377,72 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (scanResults != null && !scanResults.isEmpty()) {
 
                 int numFeatures = scanResults.size();
-                double[] features = new double[2*numFeatures];
+                Log.d("LOG", String.valueOf(numFeatures));
+                int one = 0;
+                int two=0;
+                int three=0;
+                int oneTemp=-100;
+                int twoTemp=-110;
+                int threeTemp=-120;
+
+                double[] features = new double[6];
+
                 for (int i = 0; i < numFeatures; i++) {
                     ScanResult scanResult = scanResults.get(i);
-                    int rssi = scanResult.level;
-                    String bssid = scanResult.BSSID;
-                    features[2 * i] = rssi; // RSSI 값 저장
-                    String[] li = bssid.split(":");
-                    String rssiTemp = null;
-                    rssiTemp = String.valueOf((Integer.parseInt(li[0],16)));
-                    for (int j = 1; j < li.length; j++) {
-                        rssiTemp=rssiTemp+String.valueOf((Integer.parseInt(li[j],16)));
+                    Log.d("LOG",scanResult.BSSID);
+                    if(scanResult.level>threeTemp){
+                        if(scanResult.level>twoTemp){
+                            if(scanResult.level>oneTemp){
+                                if(oneTemp!=-100) {
+                                    three=two;
+                                    two=one;
+                                    threeTemp=twoTemp;
+                                    twoTemp=oneTemp;
+                                }
+                                one = i;
+                                oneTemp=scanResult.level;
+
+                            }
+                            else{
+                                if(twoTemp!=-100) {
+                                    three = two;
+                                    threeTemp = twoTemp;
+                                }
+                                two = i;
+                                twoTemp=scanResult.level;
+                            }
+                        }
+                        else{
+                            three=i;
+                            threeTemp=scanResult.level;
+                        }
                     }
-                    features[2 * i + 1] = Double.parseDouble(rssiTemp);
+
+                }
+                features[0] = oneTemp;
+                features[2] = twoTemp;
+                features[4] = threeTemp;
+                // RSSI 값 저장
+                String rssiTemp = null;
+                String[] li;
+                for(int p =0;p<3;p++) {
+                    if(p==0){
+                         li = scanResults.get(one).BSSID.split(":");
+                    }
+                    else if(p==1){
+                         li =scanResults.get(two).BSSID.split(":");
+                    }
+                    else{
+                         li = scanResults.get(three).BSSID.split(":");
+                    }
+                    rssiTemp = String.valueOf((Integer.parseInt(li[0], 16)));
+                    for (int j = 1; j < li.length; j++) {
+                        rssiTemp = rssiTemp + String.valueOf((Integer.parseInt(li[j], 16)));
+                    }
+                    features[2 * p + 1] = Double.parseDouble(rssiTemp);
                 }
                 return new ArrayRealVector(features);
+
             }
         }
         return null;
@@ -447,6 +499,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         check Che = new check();
         startCh=Che.checkMain(this.result);
         Log.d("cg", String.valueOf(startCh));
+        Toast.makeText(getApplicationContext(),"You are location is "+ result,Toast.LENGTH_SHORT).show();
     }
 
     // 유클리디안 거리 계산
@@ -491,35 +544,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     //가야할 방향, 방향벡터로 계산
-    public void updateDirectionImage(float azimuth) {
-        if (directionImageView != null) {
+    public void updateDirectionImage() {
+        if (pt != null) {
 
             // 현재 위치 출력
             //String locationText = "Latitude: " + latitude + ", Longitude: " + longitude;
             //location.setText(locationText);
 
-            /*
+
             // 방향에 따라 이미지 변경
-            if (azimuth > 45 && azimuth < 135) {
-                directionImageView.setImageResource(R.drawable.right);
-            } else if (azimuth > 135 && azimuth < 225) {
-                directionImageView.setImageResource(R.drawable.down);
-            } else if (azimuth > 225 && azimuth < 315) {
-                directionImageView.setImageResource(R.drawable.left);
-            } else {
-                directionImageView.setImageResource(R.drawable.up);
-            }
+
 
             // 다음 경로 노드를 바라보는 회전 각도 계산
-            float rotationAngle = targetDirection - azimuth;
+//            float rotationAngle = targetDirection - azimuth;
 
             // 현재 위치와 다음 노드의 좌표
-            float currentX = getCurrentX(); // 현재 위치의 X 좌표
-            float currentY = getCurrentY(); // 현재 위치의 Y 좌표
-            float nextX = nextNode.getX(); // 다음 노드의 X 좌표
-            float nextY = nextNode.getY(); // 다음 노드의 Y 좌표
-
-            // 현재 위치와 다음 노드 사이의 방향 벡터 계산
+            float currentX = (float) astar.start.getX();
+            float currentY = (float) astar.start.getY(); // 현재 위치의 Y 좌표
+            float nextX = (float) astar.next.getX(); // 다음 노드의 X 좌표
+            float nextY = (float) astar.next.getY(); // 다음 노드의 Y 좌표
+//
+//            // 현재 위치와 다음 노드 사이의 방향 벡터 계산
             float directionX = nextX - currentX;
             float directionY = nextY - currentY;
 
@@ -533,14 +578,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (angleDegrees < 0) {
                 angleDegrees += 360;
             }
+            Log.d("angle", String.valueOf(angleDegrees));
+            if (angleDegrees > 45 && angleDegrees < 135) {
+                pt.setImageResource(R.drawable.right);
+            } else if (angleDegrees > 135 && angleDegrees < 225) {
+                pt.setImageResource(R.drawable.down);
+            } else if (angleDegrees > 225 && angleDegrees < 315) {
+                pt.setImageResource(R.drawable.left);
+            } else {
+                pt.setImageResource(R.drawable.up);
+            }
 
-            // 이미지 회전 애니메이션 생성
-            RotateAnimation rotationAnimation = new RotateAnimation(0f, rotationAngle, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-            rotationAnimation.setDuration(250);
-            rotationAnimation.setFillAfter(true);
-
-            // 이미지뷰에 애니메이션 적용
-            directionImageView.startAnimation(rotationAnimation); */
+//            // 이미지 회전 애니메이션 생성
+//            RotateAnimation rotationAnimation = new RotateAnimation(0f, rotationAngle, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+//            rotationAnimation.setDuration(250);
+//            rotationAnimation.setFillAfter(true);
+//
+//            // 이미지뷰에 애니메이션 적용
+//            directionImageView.startAnimation(rotationAnimation);
         }
     }
 }
