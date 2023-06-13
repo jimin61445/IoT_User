@@ -37,9 +37,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import org.apache.commons.math3.linear.ArrayRealVector;
-import org.apache.commons.math3.linear.RealVector;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -137,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 // 네비게이션 액티비티로 전환
 //                Intent intent = new Intent(MainActivity.this, Navigation.class);
 //                startActivity(intent);
-                getData();
+                getCurrentFingerprint();
 
             }
         });
@@ -165,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             Log.d("Log",Flo+" "+Roo);
             Log.d("Log",FloT+" "+RooT);
             if(Flo==4){
-               astar.start=astar.n[Roo];
+                astar.start=astar.n[Roo];
             }
             else if(Flo==5){
                 astar.start = astar.m[Roo];
@@ -267,9 +264,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onAccuracyChanged(Sensor sensor,int accuracy){}
 
-    private void getData() {
+    private void getData(double[] features, String[] feat) {
         db = FirebaseFirestore.getInstance();
-        CollectionReference collectionRef = db.collection("classrooms");
+        CollectionReference collectionRef = db.collection("classTest");
         collectionRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -277,38 +274,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 if (task.isSuccessful()) {
                     QuerySnapshot querySnapshot = task.getResult();
                     if (querySnapshot != null) {
-                        List<RealVector> dataList = new ArrayList<>();
+                        List<Double> dataList = new ArrayList<>();
                         List<String> databaseLocations = new ArrayList<>();
-
                         for (QueryDocumentSnapshot documentSnapshot : querySnapshot) {
 
                             // 문서의 필드에서 RSSI 값을 가져와서 벡터로 변환
 
                             ArrayList<Object> RSSIHashMap = (ArrayList<Object>) documentSnapshot.getData().get("RSSI");
-
                             if(RSSIHashMap!=null&&!RSSIHashMap.isEmpty()) {
-                                double[] features = new double[RSSIHashMap.size() * 2];
-
+                                double sum = 0;
                                 for (int i = 0; i < RSSIHashMap.size(); i++) {
-                                    Log.d("B",""+RSSIHashMap.size());
+                                    sum = 0;
+
                                     HashMap<String, String> map = (HashMap<String, String>) RSSIHashMap.get(i);
                                     ssid = map.get("ssid");
                                     bssid = map.get("bssid");
                                     rssi = map.get("rssi");
-                                    Log.d("log", ssid + bssid + rssi);
-                                    String[] li = bssid.split(":");
-                                    String rssiTemp = null;
-                                    rssiTemp = String.valueOf((Integer.parseInt(li[0],16)));
-                                    for (int j = 1; j < li.length; j++) {
-                                        rssiTemp=rssiTemp+String.valueOf((Integer.parseInt(li[j],16)));
+                                    for (int j = 0; j < 3; j++) {
+                                        if (feat[j].equals(bssid)) {
+                                            sum = sum + Math.abs(features[j] - Integer.parseInt(rssi));
+                                            Log.d("LOGLOGLOG", documentSnapshot.getId() + " " + features[j] + " " + rssi + " " + j);
+                                        }
+                                        else{
+                                            sum=sum+1;
+                                        }
                                     }
-                                    features[2 * i] = Double.parseDouble(rssi);
-                                    Log.d("lod",rssiTemp);
-                                    features[2 * i + 1] = Double.parseDouble(rssiTemp);
                                 }
-                                Log.d("a","AAA");
-                                RealVector dataVector = new ArrayRealVector(features);
-                                dataList.add(dataVector);
+                                Log.d("LOGLOGLOG", documentSnapshot.getId() + " "+sum);
+                                dataList.add(sum / 3);
                                 databaseLocations.add(documentSnapshot.getId());
                             }
 
@@ -340,13 +333,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         }
 
                         // 3. 핑거프린트 매칭 실행
-                        RealVector currentFingerprint = getCurrentFingerprint();
-                        if (currentFingerprint != null) {
-                            fingerprintMatching(dataList, databaseLocations, currentFingerprint);
-                        } else {
-                            // 현재 위치의 핑거프린트를 가져올 수 없음
-                            Toast.makeText(getApplicationContext(), "Failed to get current fingerprint", Toast.LENGTH_SHORT).show();
-                        }
+                        fingerprintMatching(dataList, databaseLocations);
 
                     }
                 } else {
@@ -360,16 +347,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     // 2. 현재 위치의 Wi-Fi rssi 값을 핑거프린트 특징값으로 변환
-    private RealVector getCurrentFingerprint() {
+    private void getCurrentFingerprint() {
 
         // 위치 권한 확인
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-            return null;
         }
 
         // 위치 권한이 있는 경우, Wi-Fi 신호 측정값 가져오기
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        double[] features = new double[0];
+        String[] feat = new String[0];
         if (wifiManager != null) {
 
             wifiManager.startScan(); // Wi-Fi 스캔 시작
@@ -379,73 +367,65 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 int numFeatures = scanResults.size();
                 Log.d("LOG", String.valueOf(numFeatures));
                 int one = 0;
-                int two=0;
-                int three=0;
-                int oneTemp=-100;
-                int twoTemp=-110;
-                int threeTemp=-120;
+                int two = 0;
+                int three = 0;
+                int oneTemp = -100;
+                int twoTemp = -110;
+                int threeTemp = -120;
 
-                double[] features = new double[6];
+                features = new double[3];
+                feat = new String[3];
 
                 for (int i = 0; i < numFeatures; i++) {
                     ScanResult scanResult = scanResults.get(i);
-                    Log.d("LOG",scanResult.BSSID);
-                    if(scanResult.level>threeTemp){
-                        if(scanResult.level>twoTemp){
-                            if(scanResult.level>oneTemp){
-                                if(oneTemp!=-100) {
-                                    three=two;
-                                    two=one;
-                                    threeTemp=twoTemp;
-                                    twoTemp=oneTemp;
+                    Log.d("LOG", scanResult.BSSID);
+                    if (scanResult.level > threeTemp) {
+                        if (scanResult.level > twoTemp) {
+                            if (scanResult.level > oneTemp) {
+                                if (oneTemp != -100) {
+                                    three = two;
+                                    two = one;
+                                    threeTemp = twoTemp;
+                                    twoTemp = oneTemp;
                                 }
                                 one = i;
-                                oneTemp=scanResult.level;
+                                oneTemp = scanResult.level;
 
-                            }
-                            else{
-                                if(twoTemp!=-100) {
+                            } else {
+                                if (twoTemp != -100) {
                                     three = two;
                                     threeTemp = twoTemp;
                                 }
                                 two = i;
-                                twoTemp=scanResult.level;
+                                twoTemp = scanResult.level;
                             }
-                        }
-                        else{
-                            three=i;
-                            threeTemp=scanResult.level;
+                        } else {
+                            three = i;
+                            threeTemp = scanResult.level;
                         }
                     }
 
                 }
                 features[0] = oneTemp;
-                features[2] = twoTemp;
-                features[4] = threeTemp;
+                features[1] = twoTemp;
+                features[2] = threeTemp;
                 // RSSI 값 저장
                 String rssiTemp = null;
-                String[] li;
-                for(int p =0;p<3;p++) {
-                    if(p==0){
-                         li = scanResults.get(one).BSSID.split(":");
+                String li;
+                for (int p = 0; p < 3; p++) {
+                    if (p == 0) {
+                        li = scanResults.get(one).BSSID;
+                    } else if (p == 1) {
+                        li = scanResults.get(two).BSSID;
+                    } else {
+                        li = scanResults.get(three).BSSID;
                     }
-                    else if(p==1){
-                         li =scanResults.get(two).BSSID.split(":");
-                    }
-                    else{
-                         li = scanResults.get(three).BSSID.split(":");
-                    }
-                    rssiTemp = String.valueOf((Integer.parseInt(li[0], 16)));
-                    for (int j = 1; j < li.length; j++) {
-                        rssiTemp = rssiTemp + String.valueOf((Integer.parseInt(li[j], 16)));
-                    }
-                    features[2 * p + 1] = Double.parseDouble(rssiTemp);
+                    feat[p] = li;
                 }
-                return new ArrayRealVector(features);
 
             }
         }
-        return null;
+        getData(features, feat);
     }
 
     // 위치 권한 요청 결과 처리
@@ -462,39 +442,46 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     // 3. 핑거프린트 매칭 (유클리디안 거리, knn 매칭 알고리즘)
-    private void fingerprintMatching(List<RealVector> databaseFingerprints, List<String> databaseLocations, RealVector currentFingerprint) {
+    private void fingerprintMatching(List<Double> databaseFingerprints, List<String> databaseLocations) {
         // 유클리디안 거리
         List<Double> distances = new ArrayList<>();
-        for (RealVector fingerprint : databaseFingerprints) {
-            double distance = computeEuclideanDistance(currentFingerprint, fingerprint);
-            distances.add(distance);
-        }
-
-        // knn
-        int k = 3;
-        List<Integer> indices = findNearestNeighbors(distances, k);
-
-        // 가장 가까운 이웃 중에서 가장 많이 등장한 위치
-        Map<String, Integer> locationCount = new HashMap<>();
-        for (int i : indices) {
-            String location = databaseLocations.get(i);
-            int count = locationCount.getOrDefault(location, 0);
-            locationCount.put(location, count + 1);
-        }
-
-        // 가장 많이 등장한 위치 출력
-        String mostFrequentLocation = null;
-        int maxCount = 0;
-        for (Map.Entry<String, Integer> entry : locationCount.entrySet()) {
-            String location = entry.getKey();
-            int count = entry.getValue();
-            if (count > maxCount) {
-                mostFrequentLocation = location;
-                maxCount = count;
+        Double minSum= Double.valueOf(10000);
+        int min=0;
+        for(int i=0;i<databaseFingerprints.size();i++){
+            Log.d("Min", String.valueOf(databaseFingerprints.get(i)));
+            if(minSum>databaseFingerprints.get(i)){
+                minSum=databaseFingerprints.get(i);
+                min=i;
             }
         }
+        this.result = databaseLocations.get(min);
 
-        this.result = mostFrequentLocation;
+
+
+
+        // knn
+//        int k = 3;
+//        List<Integer> indices = findNearestNeighbors(distances, k);
+//
+//        // 가장 가까운 이웃 중에서 가장 많이 등장한 위치
+//        Map<String, Integer> locationCount = new HashMap<>();
+//        for (int i : indices) {
+//            String location = databaseLocations.get(i);
+//            int count = locationCount.getOrDefault(location, 0);
+//            locationCount.put(location, count + 1);
+//        }
+//
+//        // 가장 많이 등장한 위치 출력
+//        String mostFrequentLocation = null;
+////        int maxCount = 0;
+////        for (Map.Entry<String, Integer> entry : locationCount.entrySet()) {
+////            String location = entry.getKey();
+////            int count = entry.getValue();
+////            if (count > maxCount) {
+////                mostFrequentLocation = location;
+////                maxCount = count;
+////            }
+////        }
         Log.d("Fingerprint Matching", result);
         check Che = new check();
         startCh=Che.checkMain(this.result);
@@ -503,22 +490,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     // 유클리디안 거리 계산
-    private double computeEuclideanDistance(RealVector v1, RealVector v2) {
-        double[] array1 = v1.toArray();
-        double[] array2 = v2.toArray();
-
-//        if (array1.length != array2.length) {
-//            throw new IllegalArgumentException("벡터의 길이가 일치하지 않습니다.");
+//    private double computeEuclideanDistance(RealVector v1, Double v2) {
+//        double[] array1 = v1.toArray();
+//        double[] array2 = v2.toArray();
+//
+////        if (array1.length != array2.length) {
+////            throw new IllegalArgumentException("벡터의 길이가 일치하지 않습니다.");
+////        }
+//
+//        double sum = 0.0;
+//        for (int i = 0; i < array1.length; i++) {
+//            double diff = array1[i] - array2[i];
+//            sum += diff * diff;
 //        }
-
-        double sum = 0.0;
-        for (int i = 0; i < array1.length; i++) {
-            double diff = array1[i] - array2[i];
-            sum += diff * diff;
-        }
-
-        return Math.sqrt(sum);
-    }
+//
+//        return Math.sqrt(sum);
+//    }
 
     // knn 계산
     private List<Integer> findNearestNeighbors(List<Double> distances, int k) {
