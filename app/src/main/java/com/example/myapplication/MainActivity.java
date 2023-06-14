@@ -44,6 +44,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
@@ -62,11 +64,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         }
     };
+
     private int cL;
     private ImageView pt;
     private TextView tv;
     private TextView lt;
     private SensorManager sm;
+    private MyView mv;
+    private MyView mv2;
+
     private Sensor Accel;
     private Sensor Magnet;
     private float[] LastAccel = new float[3];
@@ -83,11 +89,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private String result;
     private int startCh;
     private int endCh;
-    EditText ets ;
-    EditText ete ;
-    EditText eto ;
-    EditText eti ;
 
+    Timer timer = new Timer();
+    TimerTask timerTask =null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,8 +155,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             int Roo;
             int FloT;
             int RooT;
-            MyView mv = (MyView) findViewById(R.id.printV);
-            MyView mv2  = (MyView) findViewById(R.id.printB);
+            mv = (MyView) findViewById(R.id.printV);
+            mv2  = (MyView) findViewById(R.id.printB);
             mv.setFloor(4);
             mv2.setFloor(5);
             Flo=(int)startCh/100;
@@ -196,10 +200,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     mv.invalidate();
                 }
             }
+            keepScan();
             updateDirectionImage();
 
         }
     };
+
+    private void keepScan() {
+        timer = new Timer();
+        timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                getCurrentFingerprint();
+                astar.astarMain();
+                if (astar.start.getFloor() == 4) {
+                    mv.invalidate();
+                    mv2.invalidate();
+                } else {
+                    mv2.invalidate();
+                    mv.invalidate();
+                }
+            }
+        };
+        timer.schedule(timerTask,1000,3000);
+    }
+
     View.OnClickListener u= new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -209,6 +234,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             MyView mv2  = (MyView) findViewById(R.id.printB);
             mv.invalidate();
             mv2.invalidate();
+            stopTimerTask();
         }
     };
     @Override
@@ -282,27 +308,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                             ArrayList<Object> RSSIHashMap = (ArrayList<Object>) documentSnapshot.getData().get("RSSI");
                             if(RSSIHashMap!=null&&!RSSIHashMap.isEmpty()) {
-                                double sum = 0;
-                                for (int i = 0; i < RSSIHashMap.size(); i++) {
-                                    sum = 0;
 
+                                double sum = 0;
+                                double count=0;
+                                for (int i = 0; i <20; i++) {
                                     HashMap<String, String> map = (HashMap<String, String>) RSSIHashMap.get(i);
                                     ssid = map.get("ssid");
                                     bssid = map.get("bssid");
                                     rssi = map.get("rssi");
-                                    for (int j = 0; j < 3; j++) {
+                                    for (int j = 0; j < feat.length; j++) {
                                         if (feat[j].equals(bssid)) {
-                                            sum = sum + Math.abs(features[j] - Integer.parseInt(rssi));
-                                            Log.d("LOGLOGLOG", documentSnapshot.getId() + " " + features[j] + " " + rssi + " " + j);
-                                        }
-                                        else{
-                                            sum=sum+1;
+                                            count=count+1;
+                                            Log.d("LOGLOGLOG", documentSnapshot.getId() + " " + features[j] + " " + rssi + " " + j+" "+count);
                                         }
                                     }
                                 }
-                                Log.d("LOGLOGLOG", documentSnapshot.getId() + " "+sum);
-                                dataList.add(sum / 3);
+
+                                double jakad = (count/ (RSSIHashMap.size()+feat.length-count));
+                                Log.d("jakad", String.valueOf(jakad)+RSSIHashMap.size()+feat.length+" "+count);
+                                dataList.add(jakad);
                                 databaseLocations.add(documentSnapshot.getId());
+
                             }
 
 
@@ -365,67 +391,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (scanResults != null && !scanResults.isEmpty()) {
 
                 int numFeatures = scanResults.size();
-                Log.d("LOG", String.valueOf(numFeatures));
-                int one = 0;
-                int two = 0;
-                int three = 0;
-                int oneTemp = -100;
-                int twoTemp = -110;
-                int threeTemp = -120;
 
-                features = new double[3];
-                feat = new String[3];
+                features = new double[numFeatures];
+                feat = new String[numFeatures];
 
                 for (int i = 0; i < numFeatures; i++) {
                     ScanResult scanResult = scanResults.get(i);
                     Log.d("LOG", scanResult.BSSID);
-                    if (scanResult.level > threeTemp) {
-                        if (scanResult.level > twoTemp) {
-                            if (scanResult.level > oneTemp) {
-                                if (oneTemp != -100) {
-                                    three = two;
-                                    two = one;
-                                    threeTemp = twoTemp;
-                                    twoTemp = oneTemp;
-                                }
-                                one = i;
-                                oneTemp = scanResult.level;
-
-                            } else {
-                                if (twoTemp != -100) {
-                                    three = two;
-                                    threeTemp = twoTemp;
-                                }
-                                two = i;
-                                twoTemp = scanResult.level;
-                            }
-                        } else {
-                            three = i;
-                            threeTemp = scanResult.level;
-                        }
-                    }
-
+                    features[i]=scanResult.level;
+                    feat[i]=scanResult.BSSID;
                 }
-                features[0] = oneTemp;
-                features[1] = twoTemp;
-                features[2] = threeTemp;
-                // RSSI 값 저장
-                String rssiTemp = null;
-                String li;
-                for (int p = 0; p < 3; p++) {
-                    if (p == 0) {
-                        li = scanResults.get(one).BSSID;
-                    } else if (p == 1) {
-                        li = scanResults.get(two).BSSID;
-                    } else {
-                        li = scanResults.get(three).BSSID;
-                    }
-                    feat[p] = li;
-                }
-
             }
         }
         getData(features, feat);
+
     }
 
     // 위치 권한 요청 결과 처리
@@ -444,13 +423,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // 3. 핑거프린트 매칭 (유클리디안 거리, knn 매칭 알고리즘)
     private void fingerprintMatching(List<Double> databaseFingerprints, List<String> databaseLocations) {
         // 유클리디안 거리
-        List<Double> distances = new ArrayList<>();
-        Double minSum= Double.valueOf(10000);
+        Double minS= Double.valueOf(0);
         int min=0;
         for(int i=0;i<databaseFingerprints.size();i++){
-            Log.d("Min", String.valueOf(databaseFingerprints.get(i)));
-            if(minSum>databaseFingerprints.get(i)){
-                minSum=databaseFingerprints.get(i);
+            Log.d("Min", databaseLocations.get(i)+"   "+String.valueOf(databaseFingerprints.get(i)));
+            if(minS<databaseFingerprints.get(i)){
+                minS=databaseFingerprints.get(i);
                 min=i;
             }
         }
@@ -485,8 +463,30 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Log.d("Fingerprint Matching", result);
         check Che = new check();
         startCh=Che.checkMain(this.result);
+        int flo =startCh/100;
+        int roo =startCh%100;
+        if(flo==4){
+            astar.start=astar.n[roo];
+        }
+        else if(flo==5){
+            astar.start=astar.m[roo];
+        }
+        if(astar.start==astar.end){
+            stopTimerTask();
+            Toast.makeText(getApplicationContext(),"Arrive",Toast.LENGTH_SHORT).show();
+            mv.invalidate();
+            mv2.invalidate();
+        }
         Log.d("cg", String.valueOf(startCh));
         Toast.makeText(getApplicationContext(),"You are location is "+ result,Toast.LENGTH_SHORT).show();
+
+    }
+
+    private void stopTimerTask() {
+        if(timerTask!=null){
+            timerTask.cancel();
+            timerTask=null;
+        }
     }
 
     // 유클리디안 거리 계산
@@ -584,5 +584,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //            // 이미지뷰에 애니메이션 적용
 //            directionImageView.startAnimation(rotationAnimation);
         }
+
     }
 }
