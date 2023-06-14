@@ -24,7 +24,6 @@ import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -42,7 +41,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -200,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     mv.invalidate();
                 }
             }
-            keepScan();
+            //keepScan();
             updateDirectionImage();
 
         }
@@ -301,6 +299,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     QuerySnapshot querySnapshot = task.getResult();
                     if (querySnapshot != null) {
                         List<Double> dataList = new ArrayList<>();
+                        List<Double> sumList = new ArrayList<>();
                         List<String> databaseLocations = new ArrayList<>();
                         for (QueryDocumentSnapshot documentSnapshot : querySnapshot) {
 
@@ -311,22 +310,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                                 double sum = 0;
                                 double count=0;
-                                for (int i = 0; i <20; i++) {
+                                for (int i = 0; i <RSSIHashMap.size(); i++) {
                                     HashMap<String, String> map = (HashMap<String, String>) RSSIHashMap.get(i);
                                     ssid = map.get("ssid");
                                     bssid = map.get("bssid");
                                     rssi = map.get("rssi");
                                     for (int j = 0; j < feat.length; j++) {
-                                        if (feat[j].equals(bssid)) {
-                                            count=count+1;
-                                            Log.d("LOGLOGLOG", documentSnapshot.getId() + " " + features[j] + " " + rssi + " " + j+" "+count);
+                                        if(ssid.equals("GC_free_WiFi")){
+                                            Log.d("SSID",ssid);
+                                            if (feat[j]==bssid) {
+                                                count=count+1;
+                                                double temp = Math.abs(Integer.parseInt(rssi)-features[j]);
+                                                sum = sum+temp;
+                                                Log.d("LOGLOGLOG", documentSnapshot.getId() + " " + features[j] + " " + rssi + " " + j+" "+count);
+                                            }
+                                        }
+                                        else {
+                                            sum=10000;
                                         }
                                     }
                                 }
 
                                 double jakad = (count/ (RSSIHashMap.size()+feat.length-count));
-                                Log.d("jakad", String.valueOf(jakad)+RSSIHashMap.size()+feat.length+" "+count);
+                                Log.d("jakad", String.valueOf(jakad)+" "+count);
                                 dataList.add(jakad);
+                                sumList.add(sum);
                                 databaseLocations.add(documentSnapshot.getId());
 
                             }
@@ -359,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         }
 
                         // 3. 핑거프린트 매칭 실행
-                        fingerprintMatching(dataList, databaseLocations);
+                        fingerprintMatching(dataList, databaseLocations,sumList);
 
                     }
                 } else {
@@ -397,9 +405,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 for (int i = 0; i < numFeatures; i++) {
                     ScanResult scanResult = scanResults.get(i);
-                    Log.d("LOG", scanResult.BSSID);
-                    features[i]=scanResult.level;
-                    feat[i]=scanResult.BSSID;
+                    if(scanResult.SSID.equals("GC_free_WiFi")) {
+                        features[i] = scanResult.level;
+                        feat[i] = scanResult.BSSID;
+                    }
                 }
             }
         }
@@ -421,18 +430,56 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     // 3. 핑거프린트 매칭 (유클리디안 거리, knn 매칭 알고리즘)
-    private void fingerprintMatching(List<Double> databaseFingerprints, List<String> databaseLocations) {
+    private void fingerprintMatching(List<Double> databaseFingerprints, List<String> databaseLocations, List<Double> sumList) {
         // 유클리디안 거리
         Double minS= Double.valueOf(0);
-        int min=0;
+        Double minQ= Double.valueOf(0);
+        Double minT= Double.valueOf(0);
+
+        int[] min = {1,2,3};
+        int finMin;
         for(int i=0;i<databaseFingerprints.size();i++){
-            Log.d("Min", databaseLocations.get(i)+"   "+String.valueOf(databaseFingerprints.get(i)));
+            Log.d("data", String.valueOf(databaseFingerprints.get(i)));
             if(minS<databaseFingerprints.get(i)){
-                minS=databaseFingerprints.get(i);
-                min=i;
+                if(minQ<databaseFingerprints.get(i)){
+                    if(minT<databaseFingerprints.get(i)){
+                        minS=minQ;
+                        minQ=minT;
+                        minT=databaseFingerprints.get(i);
+                        min[2]=min[1];
+                        min[1]=min[0];
+                        min[0]=i;
+                    }
+                    else{
+                        minS=minQ;
+                        minQ=databaseFingerprints.get(i);
+                        min[2]=min[1];
+                        min[1]=i;
+                    }
+                }
+                else{
+                    minS=databaseFingerprints.get(i);
+                    min[2]=i;
+                }
             }
         }
-        this.result = databaseLocations.get(min);
+        if(sumList.get( min[0])>sumList.get(min[1])){
+            if(sumList.get(min[1])>sumList.get(min[2])){
+                finMin=min[2];
+            }
+            else{
+                finMin=min[1];
+            }
+        }
+        else{
+            if(sumList.get(min[0])>sumList.get(min[2])){
+                finMin=min[2];
+            }
+            else{
+                finMin=min[0];
+            }
+        }
+        this.result = databaseLocations.get(finMin);
 
 
 
