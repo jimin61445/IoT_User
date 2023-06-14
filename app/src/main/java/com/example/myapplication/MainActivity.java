@@ -310,6 +310,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                                 double sum = 0;
                                 double count=0;
+                                double jakado=0;
                                 for (int i = 0; i <RSSIHashMap.size(); i++) {
                                     HashMap<String, String> map = (HashMap<String, String>) RSSIHashMap.get(i);
                                     ssid = map.get("ssid");
@@ -331,9 +332,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                     }
                                 }
 
-                                double jakad = (count/ (RSSIHashMap.size()+feat.length-count));
-                                Log.d("jakad", String.valueOf(jakad)+" "+count);
-                                dataList.add(jakad);
+                                jakado = (count/ (RSSIHashMap.size()+feat.length-count));
+                                Log.d("jakad", String.valueOf(jakado)+" "+count);
+                                dataList.add(jakado);
                                 sumList.add(sum);
                                 databaseLocations.add(documentSnapshot.getId());
 
@@ -399,17 +400,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (scanResults != null && !scanResults.isEmpty()) {
 
                 int numFeatures = scanResults.size();
-
-                features = new double[numFeatures];
-                feat = new String[numFeatures];
-
-                for (int i = 0; i < numFeatures; i++) {
+                int count =0;
+                for(int i=0;i<numFeatures;i++){
                     ScanResult scanResult = scanResults.get(i);
+                    if(scanResult.SSID=="GC_free_WiFi") {
+                       count=count+1;
+                    }
+                }
+                features = new double[count];
+                feat = new String[count];
+                for (int i = 0; i < count; i++) {
+                    ScanResult scanResult = scanResults.get(i);
+
                     if(scanResult.SSID=="GC_free_WiFi") {
                         features[i] = scanResult.level;
                         feat[i] = scanResult.BSSID;
                     }
                 }
+
             }
         }
         getData(features, feat);
