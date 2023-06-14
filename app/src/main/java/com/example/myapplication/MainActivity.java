@@ -317,7 +317,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                     rssi = map.get("rssi");
                                     for (int j = 0; j < feat.length; j++) {
                                         if(ssid.equals("GC_free_WiFi")){
-                                            Log.d("SSID",ssid);
+                                            Log.d("BSSID",bssid);
                                             if (feat[j]==bssid) {
                                                 count=count+1;
                                                 double temp = Math.abs(Integer.parseInt(rssi)-features[j]);
@@ -432,51 +432,54 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // 3. 핑거프린트 매칭 (유클리디안 거리, knn 매칭 알고리즘)
     private void fingerprintMatching(List<Double> databaseFingerprints, List<String> databaseLocations, List<Double> sumList) {
         // 유클리디안 거리
-        Double minS= Double.valueOf(0);
-        Double minQ= Double.valueOf(0);
-        Double minT= Double.valueOf(0);
+        Double minS= Double.valueOf(0.9);
+        Double minQ= Double.valueOf(0.8);
+        Double minT= Double.valueOf(0.7);
 
-        int[] min = {1,2,3};
+        int minOne=0;
+        int minTwo=0;
+        int minThree=0;
+
         int finMin;
         for(int i=0;i<databaseFingerprints.size();i++){
             Log.d("data", String.valueOf(databaseFingerprints.get(i)));
-            if(minS<databaseFingerprints.get(i)){
-                if(minQ<databaseFingerprints.get(i)){
-                    if(minT<databaseFingerprints.get(i)){
+            if(minS>databaseFingerprints.get(i)){
+                if(minQ>databaseFingerprints.get(i)){
+                    if(minT>databaseFingerprints.get(i)){
                         minS=minQ;
                         minQ=minT;
                         minT=databaseFingerprints.get(i);
-                        min[2]=min[1];
-                        min[1]=min[0];
-                        min[0]=i;
+                        minThree=minTwo;
+                        minTwo=minOne;
+                        minOne=i;
                     }
                     else{
                         minS=minQ;
                         minQ=databaseFingerprints.get(i);
-                        min[2]=min[1];
-                        min[1]=i;
+                        minThree=minTwo;
+                        minTwo=i;
                     }
                 }
                 else{
                     minS=databaseFingerprints.get(i);
-                    min[2]=i;
+                    minThree=i;
                 }
             }
         }
-        if(sumList.get( min[0])>sumList.get(min[1])){
-            if(sumList.get(min[1])>sumList.get(min[2])){
-                finMin=min[2];
+        if(sumList.get(minOne)>sumList.get(minTwo)){
+            if(sumList.get(minTwo)>sumList.get(minThree)){
+                finMin=minThree;
             }
             else{
-                finMin=min[1];
+                finMin=minTwo;
             }
         }
         else{
-            if(sumList.get(min[0])>sumList.get(min[2])){
-                finMin=min[2];
+            if(sumList.get(minOne)>sumList.get(minThree)){
+                finMin=minThree;
             }
             else{
-                finMin=min[0];
+                finMin=minOne;
             }
         }
         this.result = databaseLocations.get(finMin);
