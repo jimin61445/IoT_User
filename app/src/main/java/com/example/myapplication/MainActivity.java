@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                     bssid = map.get("bssid");
                                     rssi = map.get("rssi");
                                     for (int j = 0; j < feat.length; j++) {
-                                        if(ssid.equals("GC_free_WiFi")){
+                                        if(ssid=="GC_free_WiFi"){
                                             Log.d("BSSID",bssid);
                                             if (feat[j]==bssid) {
                                                 count=count+1;
@@ -405,7 +405,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 for (int i = 0; i < numFeatures; i++) {
                     ScanResult scanResult = scanResults.get(i);
-                    if(scanResult.SSID.equals("GC_free_WiFi")) {
+                    if(scanResult.SSID=="GC_free_WiFi") {
                         features[i] = scanResult.level;
                         feat[i] = scanResult.BSSID;
                     }
@@ -432,9 +432,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // 3. 핑거프린트 매칭 (유클리디안 거리, knn 매칭 알고리즘)
     private void fingerprintMatching(List<Double> databaseFingerprints, List<String> databaseLocations, List<Double> sumList) {
         // 유클리디안 거리
-        Double minS= Double.valueOf(0.9);
-        Double minQ= Double.valueOf(0.8);
-        Double minT= Double.valueOf(0.7);
+        Double minS= Double.valueOf(0.0);
+        Double minQ= Double.valueOf(0.0);
+        Double minT= Double.valueOf(0.0);
 
         int minOne=0;
         int minTwo=0;
@@ -443,9 +443,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         int finMin;
         for(int i=0;i<databaseFingerprints.size();i++){
             Log.d("data", String.valueOf(databaseFingerprints.get(i)));
-            if(minS>databaseFingerprints.get(i)){
-                if(minQ>databaseFingerprints.get(i)){
-                    if(minT>databaseFingerprints.get(i)){
+            if(minS<databaseFingerprints.get(i)){
+                if(minQ<databaseFingerprints.get(i)){
+                    if(minT<databaseFingerprints.get(i)){
                         minS=minQ;
                         minQ=minT;
                         minT=databaseFingerprints.get(i);
